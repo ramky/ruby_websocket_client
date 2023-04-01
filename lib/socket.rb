@@ -4,7 +4,7 @@ require 'eventmachine'
 class Socket
   def self.run
     EM.run {
-      ws = Faye::WebSocket::Client.new('ws://localhost:3000/cable')
+      ws = Faye::WebSocket::Client.new('ws://localhost:3000/cable?book_id=1')
 
       ws.on :open do |event|
         p [:open]

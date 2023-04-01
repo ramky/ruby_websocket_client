@@ -1,21 +1,20 @@
 GEM
+  remote: https://rubygems.org/
   specs:
-    eventmachine (1.2.7)
-    faye-websocket (0.11.1)
-      eventmachine (>= 0.12.0)
-      websocket-driver (>= 0.5.1)
+    event_emitter (0.2.6)
     rake (13.0.6)
-    websocket-driver (0.7.5)
-      websocket-extensions (>= 0.1.0)
-    websocket-extensions (0.1.5)
+    websocket (1.2.9)
+    websocket-client-simple (0.6.1)
+      event_emitter
+      websocket
 
 PLATFORMS
   x86_64-darwin-20
   x86_64-darwin-21
 
 DEPENDENCIES
-  faye-websocket
   rake
+  websocket-client-simple (~> 0.6.1)
 
 BUNDLED WITH
    2.3.12

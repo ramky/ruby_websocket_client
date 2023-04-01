@@ -1,12 +1,21 @@
 require 'websocket-client-simple'
 require 'json'
+require 'pry'
 
 WS_URL='ws://localhost:3000/cable?book_id=1'
 
 ws = WebSocket::Client::Simple.connect WS_URL
 
 ws.on :message do |msg|
-  puts msg.data
+  puts "Event with message: [#{msg.data}]"
+  json_message = JSON.parse(msg.data)
+  if json_message.key?('message') &&
+      json_message['message'].class == Hash &&
+      json_message['message'].key?('command') &&
+      json_message['message']['command'] == 'close'
+    puts "Closing connection"
+    exit 1
+  end
 end
 
 ws.on :open do

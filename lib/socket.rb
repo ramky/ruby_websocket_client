@@ -37,6 +37,7 @@ ws.on :error do |e|
   p "Error occurred: #{e}"
 end
 
+# TODO: Timeout after 30 seconds
 loop do
   ws.send STDIN.gets.strip
 end

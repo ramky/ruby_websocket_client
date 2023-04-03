@@ -4,7 +4,7 @@ require 'pry'
 require 'timeout'
 
 WS_URL='ws://localhost:3000/cable?book_id=1'
-TIMEOUT_SECONDS=30
+TIMEOUT_SECONDS=60
 
 ws = WebSocket::Client::Simple.connect WS_URL
 

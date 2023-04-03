@@ -1,8 +1,10 @@
 require 'websocket-client-simple'
 require 'json'
 require 'pry'
+require 'timeout'
 
 WS_URL='ws://localhost:3000/cable?book_id=1'
+TIMEOUT_SECONDS=30
 
 ws = WebSocket::Client::Simple.connect WS_URL
 
@@ -37,7 +39,12 @@ ws.on :error do |e|
   p "Error occurred: #{e}"
 end
 
-# TODO: Timeout after 30 seconds (only for demo - client should set to not more than 3 seconds)
-loop do
-  ws.send STDIN.gets.strip
+# TODO: Don't use timeout gem in production, there are known issues with threads and exception handling - only for demo
+# client should set to not more than 3 seconds
+status = nil
+begin
+  status = Timeout::timeout(TIMEOUT_SECONDS) { ws.send STDIN.gets.strip }
+rescue => exception
+  puts "Timeout [#{TIMEOUT_SECONDS}] exceeded."
+  exit 1
 end

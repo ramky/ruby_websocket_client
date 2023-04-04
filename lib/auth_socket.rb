@@ -3,10 +3,10 @@ require 'rest-client'
 
 URL = 'http://localhost:3000'
 PATH = 'authenticate'
-USER = 'f1@tela.com'
+USER = 'f@tela.com'
 PSSW = '1234'
 PARAMS1 = {params: {'email': 'f@tela.com', 'password': '1234'}}
-PARAMS =  {'email': 'f1@tela.com', 'password': '1234'}
+PARAMS =  {'email': 'f@tela.com', 'password': '1234'}
 
 def get_token2
   response = RestClient.post "#{URL}/#{PATH}", PARAMS1

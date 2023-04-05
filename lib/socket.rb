@@ -2,11 +2,14 @@ require 'websocket-client-simple'
 require 'json'
 require 'pry'
 require 'timeout'
+require_relative './auth_socket'
 
-WS_URL='ws://localhost:3000/cable?book_id=1'
-TIMEOUT_SECONDS=60
+WS_URL='ws://localhost:3000/cable?Authorization'
+TIMEOUT_SECONDS=120
 
-ws = WebSocket::Client::Simple.connect WS_URL
+as = AuthSocket.new
+puts as.token
+ws = WebSocket::Client::Simple.connect WS_URL + '=' + as.token
 
 ws.on :message do |msg|
   puts "Event with message: [#{msg.data}]"

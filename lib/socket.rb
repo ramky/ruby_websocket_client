@@ -2,14 +2,33 @@ require 'websocket-client-simple'
 require 'json'
 require 'pry'
 require 'timeout'
-require_relative './auth_socket'
+require_relative './rest_call'
 
-WS_URL='ws://localhost:3000/cable?Authorization'
-TIMEOUT_SECONDS=120
+#WS_URL='ws://localhost:3000/cable?Authorization'
+WS_URL='ws://localhost:3000/cable?Author'
+TIMEOUT_SECONDS=300
 
-as = AuthSocket.new
-puts as.token
-ws = WebSocket::Client::Simple.connect WS_URL + '=' + as.token
+# We read the author this client wants.
+author = ARGV[0][7..]
+
+# We open a RestCall to validate the user
+rc = RestCall.new(author)
+token = rc.get_token
+puts token
+
+# We want to pass token in headers.
+headers = { 'Authorization' => token}
+
+#ws = WebSocket::Client::Simple.connect WS_URL + '=' + as.token
+# I cannot find the way to read header from server.
+#ws = WebSocket::Client::Simple.connect WS_URL + '=' + rand(1).to_s, headers
+
+# Finally, pass token in URL.
+ws = WebSocket::Client::Simple.connect WS_URL + '=' + author + '&Authorization=' + token
+
+# Once channel is opened we call to obtain books from an author
+#rc.sendClient()
+
 
 ws.on :message do |msg|
   puts "Event with message: [#{msg.data}]"
@@ -20,6 +39,15 @@ ws.on :message do |msg|
       json_message['message']['command'] == 'close'
     puts "Closing connection"
     exit 1
+  else
+    if json_message.key?('identifier')
+       channel = JSON.parse(json_message['identifier'])
+       if channel.key?('channel') && channel['channel'] == 'SyncApiChannel' &&
+         json_message.key?('message')
+          uuid = json_message['message']
+          rc.send(uuid)
+       end
+    end
   end
 end
 
@@ -29,8 +57,8 @@ ws.on :open do
   msg = {
     command: 'subscribe',
     identifier: data
-  };
-  ws.send(msg.to_json);
+  }
+  ws.send(msg.to_json)
 end
 
 ws.on :close do |e|

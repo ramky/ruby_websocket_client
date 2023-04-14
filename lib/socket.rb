@@ -26,10 +26,6 @@ headers = { 'Authorization' => token}
 # Finally, pass token in URL.
 ws = WebSocket::Client::Simple.connect WS_URL + '=' + author + '&Authorization=' + token
 
-# Once channel is opened we call to obtain books from an author
-#rc.sendClient()
-
-
 ws.on :message do |msg|
   puts "Event with message: [#{msg.data}]"
   json_message = JSON.parse(msg.data)
@@ -45,6 +41,7 @@ ws.on :message do |msg|
        if channel.key?('channel') && channel['channel'] == 'SyncApiChannel' &&
          json_message.key?('message')
           uuid = json_message['message']
+          # Once channel is opened we call to obtain books from an author
           rc.send(uuid)
        end
     end

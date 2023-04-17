@@ -22,9 +22,11 @@ headers = { 'Authorization' => token}
 #ws = WebSocket::Client::Simple.connect WS_URL + '=' + as.token
 # I cannot find the way to read header from server.
 #ws = WebSocket::Client::Simple.connect WS_URL + '=' + rand(1).to_s, headers
-
+wss_options = {:ssl_version => "TLSv1_2"}
+# If we try to connect using WSS you have to configurate params to align version's number between server and client.
 # Finally, pass token in URL.
-ws = WebSocket::Client::Simple.connect WS_URL + '=' + author + '&Authorization=' + token
+#ws = WebSocket::Client::Simple.connect(WS_URL + '=' + author + '&Authorization=' + token, wss_options)
+ws = WebSocket::Client::Simple.connect(WS_URL + '=' + author + '&Authorization=' + token)
 
 ws.on :message do |msg|
   puts "Event with message: [#{msg.data}]"
@@ -35,8 +37,7 @@ ws.on :message do |msg|
       json_message['message']['command'] == 'close'
     puts "Closing connection"
     exit 1
-  else
-    if json_message.key?('identifier')
+  elsif json_message.key?('identifier')
        channel = JSON.parse(json_message['identifier'])
        if channel.key?('channel') && channel['channel'] == 'SyncApiChannel' &&
          json_message.key?('message')
@@ -44,7 +45,10 @@ ws.on :message do |msg|
           # Once channel is opened we call to obtain books from an author
           rc.send(uuid)
        end
-    end
+  elsif json_message.key?('type') && json_message['type'] == 'disconnect' &&
+       json_message.key?('reason') && json_message['reason'] == 'unauthorized'
+      puts "Closing connection by unauthorized message"
+      exit 1
   end
 end
 

@@ -4,30 +4,32 @@ require 'pry'
 require 'timeout'
 require_relative './rest_call'
 
-#WS_URL='ws://localhost:3000/cable?Authorization'
 WS_URL='ws://localhost:3000/cable?Author'
-TIMEOUT_SECONDS=300
+TIMEOUT_SECONDS=60
 
 # We read the author this client wants.
 author = ARGV[0][7..]
 
-# We open a RestCall to validate the user
-rc = RestCall.new(author)
+# We open a RestCall to validate the user and obtain token. We always use f@tela.com user.
+rc = RestCall.new()
 token = rc.get_token
 puts token
 
-# We want to pass token in headers.
-headers = { 'Authorization' => token}
+# Test1: We want to pass token in headers.
+#headers = { 'Authorization' => token}
+# Test1 Results: I cannot find the way to read header from server.
+#ws = WebSocket::Client::Simple.connect WS_URL + '=' + author, headers
 
-#ws = WebSocket::Client::Simple.connect WS_URL + '=' + as.token
-# I cannot find the way to read header from server.
-#ws = WebSocket::Client::Simple.connect WS_URL + '=' + rand(1).to_s, headers
-wss_options = {:ssl_version => "TLSv1_2"}
-# If we try to connect using WSS you have to configurate params to align version's number between server and client.
-# Finally, pass token in URL.
+# Test2: If we try to connect using WSS you have to configurate params to align version's number between server and client.
+#wss_options = {:ssl_version => "TLSv1_2"}
 #ws = WebSocket::Client::Simple.connect(WS_URL + '=' + author + '&Authorization=' + token, wss_options)
+# Test2 results: leave this investigation. We need to provide SSL from server or try to bypass, without success.
+
+# We open websocket and pass token in URL. If token is not correct, websocket won't be opened.
+# We pass author id as parameter (we open the websocket to obtain books for this author and when that is done, ws connection will be closed)
 ws = WebSocket::Client::Simple.connect(WS_URL + '=' + author + '&Authorization=' + token)
 
+# We process messages received on websocket communication opened.
 ws.on :message do |msg|
   puts "Event with message: [#{msg.data}]"
   json_message = JSON.parse(msg.data)
@@ -41,6 +43,7 @@ ws.on :message do |msg|
        channel = JSON.parse(json_message['identifier'])
        if channel.key?('channel') && channel['channel'] == 'SyncApiChannel' &&
          json_message.key?('message')
+          # This uuid message is sent from synchApiChannel.subscribed
           uuid = json_message['message']
           # Once channel is opened we call to obtain books from an author
           rc.send(uuid)

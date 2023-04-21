@@ -5,18 +5,15 @@ class RestCall
   URL = 'http://localhost:3000'
   PATH = 'authenticate'
   PATHB = 'broadcast'
-  USER = 'f@tela.com'
-  PSSW = '1234'
   PARAMS =  {'email': 'f@tela.com', 'password': '1234'}
-  #token = ''
-  attr_reader :token
-  attr_reader :client_id
+  # TEST to bypass SSL verification.
+  #PARAMS =  {'email': 'f@tela.com', 'password': '1234', verify_ssl: OpenSSL::SSL::VERIFY_NONE}
 
-  def initialize(client_id)
-    @client_id = client_id
-    # response = RestCall.post "#{URL}/#{PATH}", PARAMS
-    # results = JSON.parse(response.to_str)
-    # @token = results['auth_token']
+  attr_reader :token
+  attr_accessor :author_id
+  attr_reader :uuid
+
+  def initialize()
   end
 
   def get_token
@@ -25,17 +22,16 @@ class RestCall
     @token = results['auth_token']
   end
 
-  def send(uuid)
+  def send(uuid = @uuid)
+    if !uuid.nil? && uuid.length > 0
+      @uuid = uuid
+    end
     response = RestClient::Request.execute(
       :method => :get,
-      :url => "#{URL}/#{PATHB}" + '/' + uuid,
-      :params => uuid,
+      :url => "#{URL}/#{PATHB}" + '/' + @uuid,
       :headers => {'Authorization' => @token}
     )
     results = JSON.parse(response.to_str)
     puts results
   end
-
-  #token = get_token
-  #puts(token)
 end
